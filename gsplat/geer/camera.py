@@ -141,7 +141,13 @@ def get_camera_tanfov(
     )
 
     if camera_model == "pinhole" and not has_pinhole_distortion:
-        return width / (2 * focal_length[0]), height / (2 * focal_length[1])
+        # computePBF clips to a window symmetric about the optical axis, so it must
+        # reach the farther image edge when the principal point is off-centre
+        cx, cy = float(K[0, 2]), float(K[1, 2])
+        return (
+            max(cx, width - cx) / float(focal_length[0]),
+            max(cy, height - cy) / float(focal_length[1]),
+        )
     elif camera_model in ("pinhole", "fisheye", "ftheta"):
         cache_key = _camera_tanfov_cache_key(
             camera_model,
